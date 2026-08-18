@@ -1,0 +1,94 @@
+---
+# https://edgedl.me.gvt1.com/android/studio/ide-zips/2026.1.3.7/android-studio-quail3-linux.tar.gz
+
+- name: "Fetch Android Studio archive page"
+  uri:
+    url: "https://developer.android.com/studio/archive"
+    method: GET
+    follow_redirects: all
+    return_content: true
+    status_code: 200
+  register: android_studio_archive_page
+
+- name: "Extract current frame URL from outer page"
+  set_fact:
+    frame_url: "https://developer.android.com/{{ android_studio_archive_page.content | regex_search('frame/studio/archive_[a-zA-Z0-9._-]+\\.frame') }}"
+
+- name: "Show discovered frame URL"
+  debug:
+    msg: "{{ frame_url }}"
+
+- name: "Fetch the frame content directly"
+  uri:
+    url: "{{ frame_url }}"
+    method: GET
+    follow_redirects: all
+    return_content: true
+    status_code: 200
+  register: archive_frame
+
+- name: "Extract full Android Studio download URLs from frame content"
+  set_fact:
+    studio_download_urls: "{{ archive_frame.content | regex_findall('https://[a-zA-Z0-9./_-]+linux\\.tar\\.gz') }}"
+
+- name: "Set the latest (first) Android Studio download URL"
+  set_fact:
+    latest_android_studio_url: "{{ studio_download_urls[0] }}"
+  
+- name: "Extract version number from the URL"
+  set_fact:
+    latest_android_studio_version: "{{ latest_android_studio_url | regex_search('ide-zips/([0-9.]+)/', '\\1') | first }}"
+
+- name: "Show Latest Android Studio URL & Version"
+  debug:
+    msg:
+      - "URL: {{ latest_android_studio_url }}"
+      - "Version: {{ latest_android_studio_version }}"
+
+- name: "Check the presence of /opt/current_versions/android_studio_current_version.txt"
+  stat:
+    path: "/opt/current_versions/android_studio_current_version.txt"
+  register: android_studio_version_file
+  changed_when: false
+
+- name: "Set installed android-studio version (no file present yet)"
+  set_fact:
+    android_studio_current_version: "none"
+  when: not android_studio_version_file.stat.exists
+  changed_when: false
+
+- name: "Read content of android-studio current version file"
+  set_fact:
+    android_studio_current_version: "{{ lookup('file', '/opt/current_versions/android_studio_current_version.txt') }}"
+  when: android_studio_version_file.stat.exists
+
+- name: "Compare current version with latest version"
+  set_fact:
+    android_studio_update_required: "{{ latest_android_studio_version != android_studio_current_version }}"
+
+- name: "Download the latest Android Studio tarball"
+  get_url:
+    url: "{{ latest_android_studio_url }}"
+    dest: "/tmp/{{ latest_android_studio_url | basename }}"
+    mode: '0644'
+    timeout: 600
+  when: not android_studio_version_file.stat.exists or android_studio_update_required
+
+- name: "Extracting Android Studio"
+  unarchive:
+    src: "/tmp/{{ latest_android_studio_url | basename }}"
+    dest: "/opt"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: '0755'
+  become: true
+  become_method: sudo
+  when: android_studio_update_required
+
+- name: "Write current version to /opt/current_versions/android_studio_current_version.txt"
+  copy:
+    content: "{{ latest_android_studio_version }}\n"
+    dest: /opt/current_versions/android_studio_current_version.txt
+    mode: '0644'
+  become: true
+  become_method: sudo

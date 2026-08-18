@@ -1,0 +1,92 @@
+---
+- name: "Check the presence of ghidra"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/ghidra"
+  register: ghidra
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/ghidra"
+  copy:
+    src: "ghidra"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/ghidra"
+    mode: 0755
+  when: not ghidra.stat.exists
+
+- name: "Downloading Binary Ninja from URL"
+  get_url:
+    url: "https://cdn.binary.ninja/installers/binaryninja_free_linux.zip"
+    dest: "/tmp/binaryninja.zip"
+    mode: 0755
+    validate_certs: False
+  when: ansible_facts['architecture'] == "x86_64"
+
+- name: "Extracting Binary Ninja"
+  unarchive:
+    src: "/tmp/binaryninja.zip"
+    dest: "/opt"
+    remote_src: true
+  become: true
+  become_method: sudo
+  when: ansible_facts['architecture'] == "x86_64"
+  
+- name: "Changing ownership of Binary Ninja"
+  file:
+    path: "/opt/binaryninja"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    recurse: yes
+  become: true
+  become_method: sudo
+  when: ansible_facts['architecture'] == "x86_64"
+
+- name: "Check the presence of binaryninja"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/binaryninja"
+  register: binaryninja
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/binaryninja"
+  copy:
+    src: "binaryninja"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/binaryninja"
+    mode: 0755
+  when: not binaryninja.stat.exists
+
+- name: "Check the presence of bytecode-viewer"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/bytecode-viewer"
+  register: bytecodeviewer
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/bytecode-viewer"
+  copy:
+    src: "bytecode-viewer"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/bytecode-viewer"
+    mode: 0755
+  when: not bytecodeviewer.stat.exists
+
+- name: "Check the presence of dex-tools"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/dex-tools"
+  register: dextools
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/dex-tools"
+  copy:
+    src: "dex-tools"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/dex-tools"
+    mode: 0755
+  when: not dextools.stat.exists
+
+- name: "Check the presence of jd-gui"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/jd-gui"
+  register: jdgui
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/jd-gui"
+  copy:
+    src: "jd-gui"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/jd-gui"
+    mode: 0755
+  when: not jdgui.stat.exists

@@ -1,0 +1,14 @@
+---
+# tasks file for tools-installation
+- include_tasks: sublime-text.yml
+- include_tasks: apt.yml
+- include_tasks: golang-tools.yml
+- include_tasks: rust-tools.yml
+- include_tasks: github-tools.yml
+- include_tasks: python-tools.yml
+- include_tasks: brave-browser.yml
+- include_tasks: wireshark.yml
+- include_tasks: misc-tools.yml
+
+- include_tasks: autopsy.yml
+  when: ansible_facts['architecture'] == "x86_64" 

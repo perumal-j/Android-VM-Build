@@ -1,0 +1,80 @@
+---
+- name: "Rendering Genymotion Release Page HTML"
+  get_url:
+    url: https://www.genymotion.com/blog/release-notes/?e-filter-5a71741-product=desktop
+    dest: /tmp/genymotion-release.html
+    mode: "0644"
+    validate_certs: False
+  
+- name: "Parsing Genymotion Release Page HTML for the latest version - use regex"
+  set_fact:
+    genymotion_latest_version: "{{ (lookup('file', '/tmp/genymotion-release.html') | regex_search('Genymotion Desktop (\\d+\\.\\d+\\.\\d+)', '\\1'))[0] }}"
+
+- name: "Debug genymotion_latest_version"
+  debug:
+    msg: "{{ genymotion_latest_version }}"
+
+- name: "Check the presence of /opt/current_versions/genymotion_current_version.txt"
+  stat:
+    path: "/opt/current_versions/genymotion_current_version.txt"
+  register: genymotion_version_file
+  changed_when: false
+
+- name: "Writing Current Version to file /opt/current_versions/genymotion_current_version.txt"
+  copy:
+    dest: "/opt/current_versions/genymotion_current_version.txt"
+    content: "{{ genymotion_latest_version }}"
+    mode: '0644'
+  become: true
+  become_method: sudo
+  when: not genymotion_version_file.stat.exists
+
+- name: "Read Current Version from file /opt/current_versions/genymotion_current_version.txt"
+  set_fact:
+    genymotion_current_version: "{{ lookup('file', '/opt/current_versions/genymotion_current_version.txt') }}"
+  when: genymotion_version_file.stat.exists
+
+- name: "Compare genymotion_current_version with genymotion_latest_version"
+  set_fact:
+    genymotion_update_required: "{{ genymotion_current_version != genymotion_latest_version }}"
+  when: genymotion_version_file.stat.exists
+
+- name: "Downloading Genymotion Installer"
+  get_url:
+    url: https://dl.genymotion.com/releases/genymotion-{{ genymotion_latest_version}}/genymotion-{{ genymotion_latest_version }}-linux_x64.run
+    dest: /tmp/genymotion-{{ genymotion_latest_version }}-linux_x64.run
+    mode: "0755"
+    validate_certs: False
+
+- name: "Check the presence of Genymotion Binary File"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/genymotion/genymotion"
+  register: genymotion_bin
+  changed_when: false
+
+- name: "Installing Genymotion Installer"
+  shell: >
+    echo "y" | /tmp/genymotion-{{ genymotion_latest_version }}-linux_x64.run -d {{ ansible_facts['env']['HOME'] }}
+  when: genymotion_update_required or not genymotion_bin.stat.exists
+
+- name: "Writing latest version to file /opt/current_versions/genymotion_current_version.txt"
+  copy:
+    dest: "/opt/current_versions/genymotion_current_version.txt"
+    content: "{{ genymotion_latest_version }}"
+    mode: '0644'
+  become: true
+  become_method: sudo
+  when: genymotion_update_required
+
+- name: "Check the presence of genymotion"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/genymotion"
+  register: genymotion
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/genymotion"
+  copy:
+    src: "genymotion"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/genymotion"
+    mode: 0755
+  when: not genymotion.stat.exists

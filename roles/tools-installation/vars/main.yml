@@ -1,0 +1,114 @@
+---
+GitHubTools:
+  - name: mhtml-converter
+    url: "https://github.com/perumal-j/mhtml-converter"
+    destination: "/opt/mhtml-converter"
+
+
+UVtools:
+  - frida-tools
+  - andriller
+  - quark-engine
+
+# GitHubReleaseDownloads:
+#   - repo: "sleuthkit/sleuthkit"
+#     regex: "sleuthkit-.*\\.tar.gz$"
+#     destination: "/opt/sleuthkit"
+
+GitHubReleases:
+  - repo: "skylot/jadx"
+    regex: "jadx-.*\\.zip$"
+    destination: "/opt/jadx"
+
+  - repo: "iBotPeaches/Apktool"
+    regex: "apktool_.*\\.jar$"
+    destination: "/usr/local/bin"
+
+  - repo: "nelenkov/android-backup-extractor"
+    regex: "abe.*\\.jar$"
+    destination: "/opt/android-backup-extractor"
+
+  - repo: "NationalSecurityAgency/ghidra"
+    regex: "ghidra_.*_PUBLIC_.*\\.zip$"
+    destination: "/opt/ghidra"
+  
+  - repo: "Konloch/bytecode-viewer"
+    regex: "Bytecode-Viewer-.*\\.jar$"
+    destination: "/opt"
+
+  - repo: "pxb1988/dex2jar"
+    regex: "dex-tools-.*\\.zip$"
+    destination: "/opt/dex2jar" 
+  
+  - repo: "java-decompiler/jd-gui"
+    regex: "jd-gui-.*\\.jar$"
+    destination: "/opt" 
+
+sleuthkit_base_dir: "/opt/sleuthkit"
+
+Sleuthkit_Download_x86_64:
+  - repo: "sleuthkit/sleuthkit"
+    regex: "sleuthkit-.*\\.tar\\.gz$"
+    destination: "/opt/sleuthkit"
+
+GitHubReleasesBinaryDownload_ARM:
+  - repo: "abrignoni/ALEAPP"
+    regex: "aleapp-.*-Linux_arm64\\.AppImage$"
+    glob: "aleapp-*-Linux_arm64.AppImage"
+    destination: "/opt/aleapp"
+    new_name: "aleapp"
+
+  - repo: "abrignoni/ALEAPP"
+    regex: "aleappGUI-.*-Linux_arm64\\.AppImage$"
+    glob: "aleappGUI-*-Linux_arm64.AppImage"
+    destination: "/opt/aleappGUI"
+    new_name: "aleappGUI"
+
+  - repo: "abrignoni/iLEAPP"
+    regex: "ileapp-.*-Linux_arm64\\.AppImage$"
+    glob: "ileapp-*-Linux_arm64.AppImage"
+    destination: "/opt/ileapp"
+    new_name: "ileapp"
+
+  - repo: "abrignoni/iLEAPP"
+    regex: "ileappGUI-.*-Linux_arm64\\.AppImage$"
+    glob: "ileappGUI-*-Linux_arm64.AppImage"
+    destination: "/opt/ileappGUI"
+    new_name: "ileappGUI"
+
+  - repo: "botherder/androidqf"
+    regex: "androidqf_.*_linux_arm64"
+    glob: "androidqf_*_linux_arm64"
+    destination: "/opt/androidqf"
+    new_name: "androidqf"
+
+GitHubReleasesBinaryDownload_x86_64:
+  - repo: "abrignoni/ALEAPP"
+    regex: "aleapp-.*-Linux_x86_64\\.AppImage$"
+    glob: "aleapp-*-Linux_x86_64.AppImage"
+    destination: "/opt/aleapp"
+    new_name: "aleapp"
+
+  - repo: "abrignoni/ALEAPP"
+    regex: "aleappGUI-.*-Linux_x86_64\\.AppImage$"
+    glob: "aleappGUI-*-Linux_x86_64.AppImage"
+    destination: "/opt/aleappGUI"
+    new_name: "aleappGUI"
+
+  - repo: "abrignoni/iLEAPP"
+    regex: "ileapp-.*-Linux_x86_64\\.AppImage$"
+    glob: "ileapp-*-Linux_x86_64.AppImage"
+    destination: "/opt/ileapp"
+    new_name: "ileapp"
+
+  - repo: "abrignoni/iLEAPP"
+    regex: "ileappGUI-.*-Linux_x86_64\\.AppImage$"
+    glob: "ileappGUI-*-Linux_x86_64.AppImage"
+    destination: "/opt/ileappGUI"
+    new_name: "ileappGUI"
+
+  - repo: "botherder/androidqf"
+    regex: "androidqf_.*_linux_amd64"
+    glob: "androidqf_*_linux_amd64"
+    destination: "/opt/androidqf"
+    new_name: "androidqf"

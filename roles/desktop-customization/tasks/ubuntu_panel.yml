@@ -1,0 +1,50 @@
+---
+- name: "Check of the presence of /opt/flatpak-icons"
+  stat:
+    path: "/opt/flatpak-icons"
+  register: flat_remix
+  changed_when: false
+
+- name: "Git Cloning https://github.com/perumal-j/flatpak-icons.git"
+  git:
+    repo: "https://github.com/perumal-j/flatpak-icons.git"
+    dest: "/opt/flatpak-icons"
+  become: true
+  become_method: "sudo"
+  when: not flat_remix.stat.exists
+
+- name: "Modifying flat-remix Directory Owner"
+  file:
+    path: "/opt/flatpak-icons"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    state: directory
+    recurse: true
+  become: true
+  become_method: sudo
+  changed_when: false
+
+- name: "Ensure applications directory exists"
+  file:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/share/applications"
+    state: directory
+    mode: '0755'
+  when: ansible_facts['architecture'] == 'x86_64' and ansible_facts['distribution']|lower == 'ubuntu'
+
+- name: "Creating Desktop Launchers"
+  template:
+    src: "launchers.j2"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/share/applications/{{ item.0 }}.desktop"
+    mode: '0644'
+  loop: "{{  DesktopLaunchers | zip(AppPaths, IconPaths, Comments) }}"
+  vars:
+    DesktopLauncher: "{{ item.0 }}"
+    AppPath: "{{ item.1 }}"
+    IconPath: "{{ item.2 }}"
+    Comment: "{{ item.3 }}"
+  when: ansible_facts['architecture'] == 'x86_64' and ansible_facts['distribution']|lower == 'ubuntu'
+
+- name: "Update desktop database"
+  command: update-desktop-database "{{ ansible_facts['env']['HOME'] }}/.local/share/applications/"
+  when: ansible_facts['architecture'] == 'x86_64' and ansible_facts['distribution']|lower == 'ubuntu'
+  changed_when: false

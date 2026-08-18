@@ -1,0 +1,219 @@
+---
+- name: "Check the presence of /tmp/install_prereqs_ubuntu.sh"
+  stat:
+    path: /tmp/install_prereqs_ubuntu.sh
+  register: install_prereqs_ubuntu
+  changed_when: false
+
+- name: "Download and run https://github.com/sleuthkit/autopsy/blob/develop/linux_macos_install_scripts/install_prereqs_ubuntu.sh"
+  get_url:
+    url: https://raw.githubusercontent.com/sleuthkit/autopsy/develop/linux_macos_install_scripts/install_prereqs_ubuntu.sh
+    dest: /tmp/install_prereqs_ubuntu.sh
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: 0755
+
+- name: "Run /tmp/install_prereqs_ubuntu.sh"
+  shell: "/tmp/install_prereqs_ubuntu.sh"
+  when: install_prereqs_ubuntu.stat.exists
+
+- name: "Downloading Sleuthkit Tools"
+  shell: "go run {{ build_dir.path }}/githubdownload.go {{ item.repo }} {{ item.regex }} {{ item.destination }}"
+  environment:
+    PATH: "/usr/local/go/bin"
+    GITHUB_TOKEN: "{{ github_api_key }}"
+  loop: "{{ Sleuthkit_Download_x86_64 }}"
+  become: true
+  become_method: sudo
+
+- name: "Recursively change owner of files in Sleuthkit Tools Directories"
+  file:
+    path: "{{ item.destination }}"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    recurse: yes
+  loop: "{{ Sleuthkit_Download_x86_64 }}"
+  become: true
+  become_method: sudo
+
+- name: "Find sleuthkit source directory"
+  find:
+    paths: "{{ sleuthkit_base_dir }}"
+    patterns: "sleuthkit-*"
+    file_type: directory
+  register: sleuthkit_dirs
+
+- name: "Fail if no sleuthkit source directory found"
+  fail:
+    msg: "No sleuthkit-* directory found under {{ sleuthkit_base_dir }}"
+  when: sleuthkit_dirs.files | length == 0
+
+- name: "Set sleuthkit_src_dir fact"
+  set_fact:
+    sleuthkit_src_dir: "{{ (sleuthkit_dirs.files | sort(attribute='path') | last).path }}"
+
+- name: Show detected source directory
+  debug:
+    msg: "Using Sleuth Kit source at {{ sleuthkit_src_dir }}"
+
+# wget -o /opt/sleuthkit/sleuthkit-4.15.0/tsk/pool/tsk_lvm.hpp https://raw.githubusercontent.com/sleuthkit/sleuthkit/sleuthkit-4.15.0/tsk/pool/tsk_lvm.hpp
+
+- name: "Downloading Dependent library"
+  get_url:
+    url: https://raw.githubusercontent.com/sleuthkit/sleuthkit/sleuthkit-4.15.0/tsk/pool/tsk_lvm.hpp
+    dest: "{{ sleuthkit_src_dir }}/tsk/pool/tsk_lvm.hpp"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: 0644
+  become: true
+  become_method: sudo
+
+- name: "Run configure of sleuthkit source"
+  command: ./configure
+  args:
+    chdir: "{{ sleuthkit_src_dir }}"
+    creates: "{{ sleuthkit_src_dir }}/Makefile"
+
+- name: "Build with make"
+  command: make
+  args:
+    chdir: "{{ sleuthkit_src_dir }}"
+  become: true
+  become_method: sudo
+
+- name: "Install with make install"
+  command: make install
+  args:
+    chdir: "{{ sleuthkit_src_dir }}"
+  become: true
+  become_method: sudo
+
+- name: "Refresh shared library cache"
+  command: ldconfig
+  become: true
+  become_method: sudo
+
+- name: "Downloading Autopsy Git Latest Release"
+  uri:
+    url: https://api.github.com/repos/sleuthkit/autopsy/releases/latest
+    return_content: true
+  register: autopsy_release_file
+  changed_when: false
+
+- name: "Parsing Autopsy Release JSON"
+  set_fact:
+    autopsy_release_json: "{{ autopsy_release_file.json }}"
+  changed_when: false 
+
+- name: "Extracting Autopsy Release Version"
+  set_fact:
+    autopsy_release_version: "{{ autopsy_release_json.tag_name }}"
+
+- name: "Check the presence of /opt/current_versions/autopsy_current_version.txt"
+  stat:
+    path: "/opt/current_versions/autopsy_current_version.txt"
+  register: autopsy_current_version_file
+  changed_when: false
+
+- name: "Storing the Autopsy latest version in the current version file"
+  copy:
+    dest: "/opt/current_versions/autopsy_current_version.txt"
+    content: "{{ autopsy_release_version }}"
+    mode: "0644"
+  become: true
+  become_method: sudo
+  when: not autopsy_current_version_file.stat.exists
+
+- name: "Reading Current Version of Autopsy"
+  command: "cat /opt/current_versions/autopsy_current_version.txt"
+  register: autopsy_current_version
+  changed_when: false
+  when: autopsy_current_version_file.stat.exists
+
+- name: "Extracting Autopsy Download URL"
+  set_fact:
+    autopsy_download_url: "{{ (autopsy_release_json.assets | selectattr('name', 'contains', '.zip') | first).browser_download_url }}"
+  
+- name: "Printing Autopsy Download URL"
+  debug:
+    msg: "Downloading Autopsy from {{ autopsy_download_url }}"
+
+- name: "Check scenario for download required"
+  set_fact:
+    autopsy_download_required: "{{ autopsy_current_version != autopsy_release_version }}"
+
+- name: "Check Existence of /opt/autopsy.zip"
+  stat:
+    path: "/opt/autopsy.zip"
+  register: autopsy_zip
+  changed_when: false
+
+- name: "Downloading Autopsy"
+  get_url:
+    url: "{{ autopsy_download_url }}"
+    dest: "/opt/autopsy.zip"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: 0644
+  become: true
+  become_method: sudo
+  when: autopsy_download_required or not autopsy_zip.stat.exists
+
+- name: "Storing Autopsy Version in Current Version File"
+  copy:
+    dest: "/opt/current_versions/autopsy_current_version.txt"
+    content: "{{ autopsy_release_version }}"
+    mode: "0644"
+  become: true
+  become_method: sudo
+  when: autopsy_download_required
+
+- name: "Remove Autopsy Old Installation"
+  file:
+    path: "{{ ansible_facts['env']['HOME'] }}/autopsy"
+    state: absent
+  when: autopsy_download_required
+
+- name: "Downloading Autopsy Install Script"
+  get_url:
+    url: https://raw.githubusercontent.com/sleuthkit/autopsy/develop/linux_macos_install_scripts/install_application.sh
+    dest: /tmp/install_application.sh
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: 0755
+
+- name: "Installing Autopsy"
+  shell: "/tmp/install_application.sh -z /opt/autopsy.zip -i {{ ansible_facts['env']['HOME'] }}/autopsy -j /usr/lib/jvm/java-1.17.*"
+  when: autopsy_download_required
+
+- name: "Check the presence of autopsy"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/autopsy"
+  register: autopsy
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/autopsy"
+  copy:
+    src: "autopsy"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/autopsy"
+    mode: 0755
+  when: not autopsy.stat.exists
+
+- name: "Downloading Autopsy Addon Modules from GitHub"
+  git:
+    repo: "https://github.com/sleuthkit/autopsy_addon_modules.git"
+    dest: "/opt/autopsy_addon_modules"
+  become: true
+  become_method: sudo
+
+- name: "Set ownership and permissions on Autopsy Addon Modules"
+  file:
+    path: "/opt/autopsy_addon_modules"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: '0755'
+    state: directory
+    recurse: yes
+  become: true
+  become_method: sudo
+  when: autopsy.stat.exists

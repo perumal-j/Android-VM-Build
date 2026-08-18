@@ -1,0 +1,55 @@
+---
+- name: "Pre-seed debconf answer to allow non-root packet capture"
+  debconf:
+    name: wireshark-common
+    question: wireshark-common/install-setuid
+    value: "true"
+    vtype: boolean
+  become: yes
+  become_method: sudo
+  changed_when: false
+
+- name: "Install Wireshark (downloads + installs from Ubuntu repos)"
+  apt:
+    name: wireshark
+    state: present
+  become: true
+  become_method: sudo
+
+- name: "Ensure wireshark-common is configured with the debconf answer"
+  command: dpkg-reconfigure -f noninteractive wireshark-common
+  changed_when: false
+  become: true
+  become_method: sudo
+
+- name: "Check of current user in a group 'wireshark'"
+  shell: groups {{ ansible_facts['user_id'] }} | grep wireshark
+  become: true
+  become_method: sudo
+  register: user_in_group
+  failed_when: user_in_group.rc > 1   # rc 0 = found, rc 1 = not found (both OK); rc >1 = real error
+  changed_when: false
+
+- name: "Add users to the wireshark group for non-root packet capture"
+  user:
+    name: "{{ ansible_facts['user_id'] }}"
+    groups: wireshark
+    append: yes
+  become: true
+  become_method: sudo
+  register: group_add_result
+  when: user_in_group.rc == 1
+
+- name: "Verify wireshark installed correctly"
+  command: wireshark --version
+  register: wireshark_version
+  changed_when: false
+
+- name: "Show installed version"
+  debug:
+    msg: "{{ wireshark_version.stdout_lines[0] }}"
+
+- name: "Notify if logout/login is required"
+  debug:
+    msg: "User(s) {{ ansible_facts['user_id'] }} were added to the'wireshark' group. They must log out and back in (or reboot) before on-root packet capture works."
+  when: group_add_result.changed

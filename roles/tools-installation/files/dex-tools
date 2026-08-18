@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/opt/dex2jar/dex-tools-*/bin/dex-tools

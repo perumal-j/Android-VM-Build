@@ -1,0 +1,51 @@
+---
+- name: "Check if Python UV exists"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/uv"
+  register: uv_manager_exists
+  changed_when: false
+
+- name: "Copying uv-install.sh"
+  copy:
+    src: "uv-install.sh"
+    dest: "/tmp/uv-install.sh"
+    mode: 0755
+
+- name: "Installing Python UV"
+  shell: /tmp/uv-install.sh
+  when: not uv_manager_exists.stat.exists
+
+- name: Debug HOME on the control machine
+  debug:
+    msg: "{{ lookup('env', 'HOME') }}"
+
+- name: "Check if Frida Exists"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/frida"
+  register: "frida_exists"
+  changed_when: false
+
+- name: "Check if Andriller Exists"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/andriller-gui.py"
+  register: "andriller_exists"
+  changed_when: false
+
+- name: "Check if Quark-Engine Exists"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/quark"
+  register: "quarkengine"
+  changed_when: false
+
+- name: "Installing Frida, Andriller & Quark Engine via UV"
+  shell:
+    cmd: "uv tool install {{ item }}"
+  loop: "{{ UVtools }}"
+  when: not frida_exists.stat.exists and not andriller_exists.stat.exists and not quarkengine.stat.exists
+
+- name: "Upgrading UV tools"
+  shell: "{{ ansible_facts['env']['HOME'] }}/.local/bin/uv tool upgrade --all"
+  when: ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Parrot" or ansible_facts['distribution'] == "Debian"
+  become: true
+  become_method: sudo
+  changed_when: false

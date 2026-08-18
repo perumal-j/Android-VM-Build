@@ -1,0 +1,87 @@
+---
+- name: "Updating Apt Cache"
+  command: apt-get update
+  become: true
+  become_method: sudo
+  changed_when: false
+
+- name: "Upgrade All Packages"
+  apt: upgrade=yes force_apt_get=yes
+  become: true
+  become_method: sudo
+
+- name: "Updating Apt Cache"
+  command: apt-get update
+  become: true
+  become_method: sudo
+  changed_when: false
+
+- name: Enable i386 (32-bit) architecture for multiarch packages
+  become: true
+  command: dpkg --add-architecture i386
+  register: add_arch
+  changed_when: add_arch.rc == 0
+  # dpkg --add-architecture is idempotent by itself (no error if already added), but this task will still report "changed" every run unless you check first:
+  args:
+    creates: /var/lib/dpkg/is-i386-added-marker
+
+- name: "Update apt cache after adding architecture"
+  apt:
+    update_cache: true
+  become: true
+  become_method: sudo
+  changed_when: false
+
+- name: "Installing Tools via Apt - Ubuntu"
+  package:
+    name:
+      - jq
+      - flameshot
+      - exiftool
+      - ca-certificates
+      - curl
+      - pipx
+      - xclip
+      - python3-dev
+      - build-essential
+      - libssl-dev 
+      - libffi-dev
+      - unrar
+      - 7zip
+      - wget
+      - tar
+      - libc6:i386
+      - libstdc++6:i386
+      - libbz2-1.0:i386
+      - libfuse2t64
+    state: latest
+  become: true
+  become_method: sudo
+  when: ansible_facts['distribution']|lower == 'ubuntu'
+
+- name: "Installing Tools via Apt - Parrot"
+  package:
+    name:
+      - jq
+      - flameshot
+      - exiftool
+      - ca-certificates
+      - curl
+      - pipx
+      - xclip
+      - python3-dev
+      - build-essential
+      - libssl-dev 
+      - libffi-dev
+      - unrar
+      - 7zip
+      - wget
+      - tar
+      - libc6:i386
+      - libstdc++6:i386
+      - libbz2-1.0:i386
+      - libfuse2
+    state: latest
+  become: true
+  become_method: sudo
+  when: ansible_facts['distribution']|lower == 'parrot' or ansible_facts['distribution']|lower == 'debian'

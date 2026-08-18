@@ -1,0 +1,13 @@
+---
+- name: "Install waydroid repo list"
+  shell: "curl https://repo.waydro.id | sudo bash"
+  become: true
+  become_method: sudo
+  changed_when: false
+
+- name: "Installing Waydroid"
+  apt:
+    name: waydroid
+    state: present
+  become: true
+  become_method: sudo
