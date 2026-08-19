@@ -1,8 +1,6 @@
 #SPDX-License-Identifier: MIT-0
 ---
-DesktopLaunchers:
-  - "sublime-text"
-  - "vscode"
+X86_DesktopLaunchers:
   - "firefox"
   - "brave-browser"
   - "obsidian"
@@ -14,9 +12,18 @@ DesktopLaunchers:
   - "Ghidra"
   - "ByteCode-Viewer"
 
-AppPaths:
-  - "/usr/bin/subl"
-  - "/usr/bin/code"
+ARM_DesktopLaunchers:
+  - "firefox"
+  - "brave-browser"
+  - "obsidian"
+  - "burp-suite"
+  - "caido"
+  - "Android-Studio"
+  - "JADX-GUI"
+  - "Ghidra"
+  - "ByteCode-Viewer"
+
+X86_AppPaths:
   - "/usr/bin/firefox"
   - "/usr/bin/brave-browser"
   - "/usr/local/bin/obsidian"
@@ -28,9 +35,18 @@ AppPaths:
   - "{{ ansible_facts['env']['HOME'] }}/.local/bin/ghidra"
   - "{{ ansible_facts['env']['HOME'] }}/.local/bin/bytecode-viewer"
 
-IconPaths:
-  - "/opt/flatpak-icons/apps/scalable/sublimetext.svg"
-  - "/opt/flatpak-icons/apps/scalable/visual-studio-code.svg"
+ARM_AppPaths:
+  - "/usr/bin/firefox"
+  - "/usr/bin/brave-browser"
+  - "/usr/local/bin/obsidian"
+  - "/usr/bin/burpsuite"
+  - "/usr/local/bin/caido"
+  - "/opt/android-studio/bin/studio.sh"
+  - "/opt/jadx/bin/jadx-gui"
+  - "{{ ansible_facts['env']['HOME'] }}/.local/bin/ghidra"
+  - "{{ ansible_facts['env']['HOME'] }}/.local/bin/bytecode-viewer"
+
+X86_IconPaths:
   - "/opt/flatpak-icons/apps/scalable/firefox.svg"
   - "/opt/flatpak-icons/apps/scalable/brave-browser.svg"
   - "/opt/flatpak-icons/apps/scalable/obsidian-icon.svg"
@@ -42,9 +58,18 @@ IconPaths:
   - "/opt/flatpak-icons/apps/scalable/ghidra.svg"
   - "/opt/flatpak-icons/apps/scalable/bytecode-viewer.svg"
 
-Comments:
-  - "Sublime Text IDE"
-  - "Visual Studio Code IDE"
+ARM_IconPaths:
+  - "/opt/flatpak-icons/apps/scalable/firefox.svg"
+  - "/opt/flatpak-icons/apps/scalable/brave-browser.svg"
+  - "/opt/flatpak-icons/apps/scalable/obsidian-icon.svg"
+  - "/opt/flatpak-icons/apps/scalable/burp.svg"
+  - "/opt/flatpak-icons/apps/scalable/caido.png"
+  - "/opt/flatpak-icons/apps/scalable/android-studio.svg"
+  - "/opt/flatpak-icons/apps/scalable/jadx.svg"
+  - "/opt/flatpak-icons/apps/scalable/ghidra.svg"
+  - "/opt/flatpak-icons/apps/scalable/bytecode-viewer.svg"
+
+X86_Comments:
   - "Firefox Web Browser"
   - "Brave Browser"
   - "Obsidian Note Taking App"
@@ -52,6 +77,17 @@ Comments:
   - "Caido Web Proxy & Intruder"
   - "Android Studio IDE"
   - "Autopsy Forensic Browser"
+  - "JADX Decompiler"
+  - "Ghidra Decompiler"
+  - "ByteCode Viewer Decompiler"
+
+ARM_Comments:
+  - "Firefox Web Browser"
+  - "Brave Browser"
+  - "Obsidian Note Taking App"
+  - "Burp Suite Web Proxy & Intruder"
+  - "Caido Web Proxy & Intruder"
+  - "Android Studio IDE"
   - "JADX Decompiler"
   - "Ghidra Decompiler"
   - "ByteCode Viewer Decompiler"

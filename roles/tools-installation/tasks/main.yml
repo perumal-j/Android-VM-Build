@@ -11,4 +11,4 @@
 - include_tasks: misc-tools.yml
 
 - include_tasks: autopsy.yml
-  when: ansible_facts['architecture'] == "x86_64" 
+  when: ansible_facts['architecture'] == "x86_64" and ansible_facts['distribution']|lower == "ubuntu"

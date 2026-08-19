@@ -33,7 +33,7 @@
 - name: "Extracting OpenJDK-21"
   unarchive:
     src: "/tmp/openjdk-latest.tar.gz"
-    dest: "/usr/lib/jvm/"
+    dest: "/usr/lib/jvm/" 
   become: true
   become_method: sudo
 

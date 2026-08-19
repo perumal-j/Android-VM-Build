@@ -29,22 +29,35 @@
     path: "{{ ansible_facts['env']['HOME'] }}/.local/share/applications"
     state: directory
     mode: '0755'
-  when: ansible_facts['architecture'] == 'x86_64' and ansible_facts['distribution']|lower == 'ubuntu'
+  when: ansible_facts['architecture'] == 'x86_64' or ansible_facts['architecture'] == 'aarch64'
 
-- name: "Creating Desktop Launchers"
+- name: "Creating Desktop Launchers for x86_64 and Ubuntu"
   template:
-    src: "launchers.j2"
+    src: "launchers_x86.j2"
     dest: "{{ ansible_facts['env']['HOME'] }}/.local/share/applications/{{ item.0 }}.desktop"
     mode: '0644'
-  loop: "{{  DesktopLaunchers | zip(AppPaths, IconPaths, Comments) }}"
+  loop: "{{  X86_DesktopLaunchers | zip(X86_AppPaths, X86_IconPaths, X86_Comments) }}"
   vars:
-    DesktopLauncher: "{{ item.0 }}"
-    AppPath: "{{ item.1 }}"
-    IconPath: "{{ item.2 }}"
-    Comment: "{{ item.3 }}"
+    X86_DesktopLauncher: "{{ item.0 }}"
+    X86_AppPath: "{{ item.1 }}"
+    X86_IconPath: "{{ item.2 }}"
+    X86_Comment: "{{ item.3 }}"
   when: ansible_facts['architecture'] == 'x86_64' and ansible_facts['distribution']|lower == 'ubuntu'
+
+- name: "Creating Desktop Launchers for aarch64 and Ubuntu"
+  template:
+    src: "launchers_aarch64.j2"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/share/applications/{{ item.0 }}.desktop"
+    mode: '0644'
+  loop: "{{  ARM_DesktopLaunchers | zip(ARM_AppPaths, ARM_IconPaths, ARM_Comments) }}"
+  vars:
+    ARM_DesktopLauncher: "{{ item.0 }}"
+    ARM_AppPath: "{{ item.1 }}"
+    ARM_IconPath: "{{ item.2 }}"
+    ARM_Comment: "{{ item.3 }}"
+  when: ansible_facts['architecture'] == 'aarch64' and ansible_facts['distribution']|lower == 'ubuntu'
 
 - name: "Update desktop database"
   command: update-desktop-database "{{ ansible_facts['env']['HOME'] }}/.local/share/applications/"
-  when: ansible_facts['architecture'] == 'x86_64' and ansible_facts['distribution']|lower == 'ubuntu'
+  when: ansible_facts['architecture'] == 'x86_64' or ansible_facts['architecture'] == 'aarch64'
   changed_when: false
