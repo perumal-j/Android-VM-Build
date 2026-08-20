@@ -27,3 +27,12 @@
   become: true
   become_method: sudo
   changed_when: false
+
+- name: "Installing Tools via Apt - Ubuntu"
+  package:
+    name:
+      - sublime-text
+    state: latest
+  become: true
+  become_method: sudo
+  when: ansible_facts['distribution']|lower == 'ubuntu'
