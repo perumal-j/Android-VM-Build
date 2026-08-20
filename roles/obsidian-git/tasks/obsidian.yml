@@ -71,9 +71,15 @@
     obsidian_update_required: "{{ obsidian_current_version != obsidian_latest_version }}"
   when: obsidian_version_file.stat.exists
 
+- name: "Check the Presence of /usr/local/bin/obsidian"
+  stat:
+    path: "/usr/local/bin/obsidian"
+  register: obsidian
+  changed_when: false
+
 - name: "Executing Bash Script to Install Obsidian"
   shell: "/tmp/obsidian-download.sh"
-  when: obsidian_update_required
+  when: obsidian_update_required or not obsidian.stat.exists
 
 - name: "Store the latest version in the Current Version File"
   copy:
