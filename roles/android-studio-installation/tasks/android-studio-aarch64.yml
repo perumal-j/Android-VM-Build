@@ -118,7 +118,6 @@
   file:
     path: "/opt/android-studio/jbr"
     state: absent
-    recursive: true
   become: true
   become_method: sudo
   when: android_studio_dir_2.stat.exists
