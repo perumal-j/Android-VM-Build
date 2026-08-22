@@ -203,6 +203,7 @@
   git:
     repo: "https://github.com/sleuthkit/autopsy_addon_modules.git"
     dest: "/opt/autopsy_addon_modules"
+    force: yes
   become: true
   become_method: sudo
 
