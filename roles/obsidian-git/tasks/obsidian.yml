@@ -77,9 +77,14 @@
   register: obsidian
   changed_when: false
 
+- name: "Print obsidian_update_required status"
+  debug:
+    var: obsidian_update_required
+
 - name: "Executing Bash Script to Install Obsidian"
-  shell: "/tmp/obsidian-download.sh"
+  script: "/tmp/obsidian-download.sh"
   when: obsidian_update_required or not obsidian.stat.exists
+  ignore_errors: true
 
 - name: "Store the latest version in the Current Version File"
   copy:
