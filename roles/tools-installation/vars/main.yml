@@ -44,6 +44,10 @@ GitHubReleases:
     regex: "jd-gui-.*\\.jar$"
     destination: "/opt" 
 
+  - repo: "patrickfav/uber-apk-signer"
+    regex: "uber-apk-signer-.*\\.jar$"
+    destination: "/opt" 
+
 sleuthkit_base_dir: "/opt/sleuthkit"
 
 Sleuthkit_Download_x86_64:

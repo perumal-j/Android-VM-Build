@@ -90,3 +90,16 @@
     dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/jd-gui"
     mode: 0755
   when: not jdgui.stat.exists
+
+- name: "Check the presence of Uber-APK-Signer"
+  stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/uber-apk-signer"
+  register: uberapksigner
+  changed_when: false
+
+- name: "Creating $HOME/.local/bin/uber-apk-signer"
+  copy:
+    src: "uber-apk-signer"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.local/bin/uber-apk-signer"
+    mode: 0755
+  when: not uberapksigner.stat.exists
