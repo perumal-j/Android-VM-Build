@@ -77,13 +77,13 @@
 - name: "Set Ptyxis font name"
   dconf:
     key: "/org/gnome/Ptyxis/font-name"
-    value: "'Monospace 12'"
+    value: "'JetBrains Mono 12'"
     state: present
 
 - name: "Set Ptyxis use-system-font"
   dconf:
     key: "/org/gnome/Ptyxis/use-system-font"
-    value: "true"
+    value: "false"
     state: present
 
 - name: "Set Ptyxis window size"
