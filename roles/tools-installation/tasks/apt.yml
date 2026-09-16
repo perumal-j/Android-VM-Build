@@ -54,6 +54,7 @@
       - libstdc++6:i386
       - libbz2-1.0:i386
       - libfuse2t64
+      - libsmali-java
     state: latest
   become: true
   become_method: sudo
@@ -81,6 +82,7 @@
       - libstdc++6:i386
       - libbz2-1.0:i386
       - libfuse2
+      - libsmali-java
     state: latest
   become: true
   become_method: sudo
